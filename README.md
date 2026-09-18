@@ -90,7 +90,7 @@ CineMatch honors `process.env.PORT` and listens on `0.0.0.0`, making it immediat
 
 | Action | Mobile / Touch | Keyboard | Button |
 | :--- | :--- | :--- | :--- |
-| **Pass** | Swipe Left | `←` Left Arrow | ✕ Button |
+| **Pass** | Swipe Left | `←` Left Arrow | ✕  Button |
 | **Love (Yes)** | Swipe Right | `→` Right Arrow | ❤️ Button |
 | **Undo Last Vote** | Tap Undo | `Z` or `Backspace` | ↩️ Button |
 | **Watch Trailer** | Tap Trailer | `Space` | 🎬 Button |
