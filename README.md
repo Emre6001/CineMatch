@@ -1,4 +1,4 @@
-# 🍿 CineMatch
+#  CineMatch
 
 > **Movie night, settled in seconds.** Swipe together with friends and discover what to watch in real time!
 
@@ -9,7 +9,7 @@
 
 ---
 
-## 🌟 Overview
+##  Overview
 
 **CineMatch** eliminates the endless *"I don't know, what do you want to watch?"* debate. 
 
@@ -17,20 +17,20 @@ Create a party room, share the code or link with your partner or friends, and sw
 
 ---
 
-## ✨ Features
+##  Features
 
-- **⚡ Real-Time Multi-User Sync:** Built on WebSockets (`Socket.IO`). Join via room code (`CINE-XXXX`) or a one-click invite link.
-- **❤️ Secret Swiping:** Swipe right to **Love** or left to **Pass**. Votes remain secret until all participants agree on the same title.
-- **🎯 Match Drawer & Confetti:** Instant celebratory canvas confetti blasts the moment a unanimous match is made.
-- **🎬 Detailed Movie Cards:** High-resolution posters, ratings, runtimes, directors, synopses, and spoiler-free audience vibes.
-- **▶️ In-App Trailer Player:** Preview official trailers without leaving your swipe deck.
-- **📱 Touch & Gesture Driven:** Smooth swipe physics on mobile devices, with full desktop keyboard shortcuts (`←` Pass, `→` Love, `Z` Undo, `Space` Trailer).
-- **🔊 Sound Effects:** Atmospheric audio feedback for swipes and matches (with a quick mute toggle).
-- **🔒 Privacy & Security:** In-memory transient rooms (no databases or tracking required), protected by Helmet security headers.
+- Real-Time Multi-User Sync: Built on WebSockets (`Socket.IO`). Join via room code (`CINE-XXXX`) or a one-click invite link.
+- Secret Swiping: Swipe right to **Love** or left to **Pass**. Votes remain secret until all participants agree on the same title.
+- Match Drawer & Confetti: Instant celebratory canvas confetti blasts the moment a unanimous match is made.
+- Detailed Movie Cards: High-resolution posters, ratings, runtimes, directors, synopses, and spoiler-free audience vibes.
+- In-App Trailer Player: Preview official trailers without leaving your swipe deck.
+- Touch & Gesture Driven: Smooth swipe physics on mobile devices, with full desktop keyboard shortcuts (`←` Pass, `→` Love, `Z` Undo, `Space` Trailer).
+- Sound Effects: Atmospheric audio feedback for swipes and matches (with a quick mute toggle).
+- Privacy & Security: In-memory transient rooms (no databases or tracking required), protected by Helmet security headers.
 
 ---
 
-## 🚀 Quick Start (Run Locally)
+##  Quick Start (Run Locally)
 
 ### Prerequisites
 - [Node.js](https://nodejs.org/) (version 18 or higher recommended)
@@ -61,7 +61,7 @@ Create a party room, share the code or link with your partner or friends, and sw
 
 ---
 
-## 🌐 Free Cloud Deployment (Publishing Online)
+##  Free Cloud Deployment (Publishing Online)
 
 Since CineMatch uses **Node.js + WebSockets (Socket.IO)** for real-time live sync across devices, it runs on full-stack cloud hosts that support Node servers and persistent WebSocket connections.
 
@@ -86,7 +86,7 @@ CineMatch honors `process.env.PORT` and listens on `0.0.0.0`, making it immediat
 
 ---
 
-## ⌨️ Controls & Shortcuts
+##  Controls & Shortcuts
 
 | Action | Mobile / Touch | Keyboard | Button |
 | :--- | :--- | :--- | :--- |
@@ -98,7 +98,7 @@ CineMatch honors `process.env.PORT` and listens on `0.0.0.0`, making it immediat
 
 ---
 
-## 🛠️ Technology Stack
+##  Technology Stack
 
 - **Backend:** Node.js, Express 5, Socket.IO, Helmet, CORS
 - **Frontend:** Modern Semantic HTML5, Vanilla CSS3 (Glassmorphic Design, Custom Properties), Vanilla JavaScript ES6+
@@ -106,14 +106,14 @@ CineMatch honors `process.env.PORT` and listens on `0.0.0.0`, making it immediat
 
 ---
 
-## 📄 License
+##  License
 
 Distributed under the [MIT License](LICENSE). See `LICENSE` for more information.
 
 ---
 
-## 👤 Author
+##  Author
 
-**Emre Karakas**
+  Emre Karakas
 - GitHub: [@Emre6001](https://github.com/Emre6001)
 - Repository: [CineMatch](https://github.com/Emre6001/CineMatch)
