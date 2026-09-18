@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>CineMatch - Select Movies Together With Friends</title>
+  <meta name="description"
+    content="Movie Selection! Swipe Yes or No on movies with friends and find your common selection in real-time." />
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap"
+    rel="stylesheet">
+
+  <!-- Canvas Confetti -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+
+  <!-- Favicon -->
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍿</text></svg>">
+
+  <!-- Socket.io -->
+  <script src="/socket.io/socket.io.js"></script>
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+
+  <!-- Top Navigation Bar -->
+  <header class="app-header">
+    <div class="header-left">
+      <a href="/" class="logo" title="Return Home / Start New Room">
+        <span class="logo-icon">🍿</span>
+        <span class="logo-text">Cine<span class="highlight">Match</span></span>
+      </a>
+    </div>
+
+    <div class="header-center" id="roomCodeBadge" style="display: none;">
+      <div class="room-pill" onclick="copyRoomLink()" title="Click to copy invite link">
+        <span class="pill-dot"></span>
+        <span id="displayRoomCode">CINE-XXXX</span>
+        <span class="copy-icon">📋</span>
+      </div>
+    </div>
+
+    <div class="header-right">
+      <button class="icon-btn matches-btn" id="openMatchesBtn" onclick="toggleMatchesDrawer()" style="display: none;">
+        <span>🎯 Matches</span>
+        <span class="badge" id="matchesBadge">0</span>
+      </button>
+      <button class="sound-toggle-btn" id="soundToggleBtn" onclick="toggleSound()" title="Toggle Sound">
+        🔊
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="main-container">
+
+    <!-- VIEW 1: LOBBY (Create / Join / Waiting Room) -->
+    <section class="view-section active" id="lobbyView">
+
+      <div class="hero-banner">
+        <h1 class="hero-title">Movie night, settled in seconds.</h1>
+        <p class="hero-subtitle">You and your friends swipe secretly. When everyone says <span
+            class="text-love">YES</span>, it's a match!</p>
+      </div>
+
+      <!-- Lobby Card with Tabs -->
+      <div class="glass-card lobby-card">
+
+        <!-- Tab Selector -->
+        <div class="lobby-tabs" id="lobbyTabs">
+          <button class="tab-btn active" id="tabCreate" onclick="switchLobbyTab('create')">Host Party</button>
+          <button class="tab-btn" id="tabJoin" onclick="switchLobbyTab('join')">Join with Code</button>
+        </div>
+
+        <!-- CREATE PARTY FORM -->
+        <form class="lobby-form active" id="createPartyForm" onsubmit="handleCreateRoom(event)">
+          <div class="input-group">
+            <label for="hostNameInput">Your Name</label>
+            <input type="text" id="hostNameInput" placeholder="e.g. Alex" maxlength="20" required autocomplete="off" />
+          </div>
+
+          <div class="input-group">
+            <label>Filter by Genre <span class="hint">(Select one or multiple)</span></label>
+            <div class="genre-chips" id="genreChips">
+              <!-- Dynamically populated chips -->
+              <div class="chip-skeleton">Loading genres...</div>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block btn-glow">
+            <span>Create Movie Room</span>
+            <span class="btn-arrow">→</span>
+          </button>
+        </form>
+
+        <!-- JOIN PARTY FORM -->
+        <form class="lobby-form" id="joinPartyForm" onsubmit="handleJoinRoom(event)">
+          <div class="input-group">
+            <label for="joinNameInput">Your Name</label>
+            <input type="text" id="joinNameInput" placeholder="e.g. Jordan" maxlength="20" required
+              autocomplete="off" />
+          </div>
+
+          <div class="input-group">
+            <label for="joinCodeInput">Room Code</label>
+            <input type="text" id="joinCodeInput" placeholder="e.g. CINE-ABCD" maxlength="10" required
+              autocomplete="off" style="text-transform: uppercase;" />
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block btn-glow">
+            <span>Join Party</span>
+            <span class="btn-arrow">→</span>
+          </button>
+        </form>
+
+        <!-- WAITING ROOM (Shown once joined or created) -->
+        <div class="waiting-room" id="waitingRoom" style="display: none;">
+          <div class="room-created-header">
+            <span class="badge-status">Party Lobby Ready</span>
+            <h2 class="room-code-display" id="lobbyRoomCode" onclick="copyRoomLink()" title="Click to copy link">
+              CINE-XXXX
+              <span class="copy-hint">Copy Link</span>
+            </h2>
+            <p class="invite-msg">Share this code with your friends or send them the invite link!</p>
+          </div>
+
+          <!-- Live Participants List -->
+          <div class="participants-section">
+            <div class="section-heading">
+              <span>Friends in Room (<span id="participantCount">1</span>)</span>
+              <span class="live-pulse">● Live Sync</span>
+            </div>
+            <div class="participants-grid" id="participantsGrid">
+              <!-- Dynamically populated member cards -->
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="waiting-actions">
+            <button id="startSessionBtn" class="btn btn-primary btn-block btn-glow" onclick="startSession()"
+              style="display: none;">
+              <span>🍿 Start Swiping Together!</span>
+            </button>
+            <div id="guestWaitingMsg" class="guest-waiting-msg" style="display: none;">
+              <div class="spinner"></div>
+              <span>Waiting for the host to start the party...</span>
+            </div>
+          </div>
+
+          <!-- Multi-tab Quick Test Helper for Dev / Testing -->
+          <div class="test-helper-card">
+            <div class="test-helper-title">💡 Instant Multi-Friend Test:</div>
+            <p>Click below to open a second tab ready to join this room as a friend:</p>
+            <button type="button" class="btn-sm btn-secondary" onclick="openFriendTab()">
+              👥 Open Friend Tab (Simulate 2nd Player)
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- VIEW 2: SWIPER / DISCOVERY VIEW -->
+    <section class="view-section" id="swiperView" style="display: none;">
+
+      <!-- Top Deck Status Bar -->
+      <div class="deck-status-bar">
+        <div class="deck-counter" id="deckCounter">Movie 1 of 48</div>
+
+        <!-- Live friend progress pills -->
+        <div class="friends-progress" id="friendsProgressPills">
+          <!-- Populated dynamically: "Alex: 3/48", "Bob: 1/48" -->
+        </div>
+      </div>
+
+      <!-- Main Swiping Card Area -->
+      <div class="swiper-wrapper">
+        <div class="card-container" id="cardContainer">
+          <!-- Dynamic Movie Cards Rendered Here -->
+        </div>
+      </div>
+
+      <!-- Card Action Control Buttons -->
+      <div class="swipe-controls">
+        <button class="control-btn btn-rewind" id="rewindBtn" onclick="rewindLastVote()"
+          title="Undo Last Swipe (Z or Backspace)">
+          <span class="control-icon">↩️</span>
+          <span class="control-label">Undo</span>
+        </button>
+
+        <button class="control-btn btn-pass" id="passBtn" onclick="castCurrentVote(false)" title="Pass (Left Arrow)">
+          <span class="control-icon">✕</span>
+          <span class="control-label">Pass</span>
+        </button>
+
+        <button class="control-btn btn-trailer" id="trailerBtn" onclick="playCurrentMovieTrailer()"
+          title="Watch Trailer (Space)">
+          <span class="control-icon">🎬</span>
+          <span class="control-label">Trailer</span>
+        </button>
+
+        <button class="control-btn btn-info" id="infoBtn" onclick="toggleDetailsSheet()"
+          title="Spoiler-free reviews & details">
+          <span class="control-icon">ℹ️</span>
+          <span class="control-label">Details</span>
+        </button>
+
+        <button class="control-btn btn-like" id="likeBtn" onclick="castCurrentVote(true)" title="Love It (Right Arrow)">
+          <span class="control-icon">❤️</span>
+          <span class="control-label">Love</span>
+        </button>
+      </div>
+
+      <!-- Finish early action -->
+      <div class="finish-early-bar">
+        <button type="button" class="btn-finish-early" onclick="finishSwipingEarly()">
+          <span>🏁 Done Swiping &bull; See Matches (<span id="btnMatchCount">0</span>)</span>
+        </button>
+      </div>
+
+      <!-- Keyboard shortcuts hint -->
+      <div class="keyboard-hints">
+        <span>Z = Undo</span>
+        <span>← Pass</span>
+        <span>Space = Trailer</span>
+        <span>→ Love</span>
+      </div>
+
+    </section>
+
+    <!-- VIEW 3: FINISHED DECK WAITING VIEW -->
+    <section class="view-section" id="finishedView" style="display: none;">
+      <div class="glass-card finished-card">
+        <div class="finished-icon">🎉</div>
+        <h2>You've reviewed all movies!</h2>
+        <p class="finished-sub">Your votes are saved. While your friends finish their cards, check out your common
+          matches so far:</p>
+
+        <div class="finished-match-summary">
+          <div class="match-count-huge" id="finishedMatchCount">0</div>
+          <div class="match-count-label">Movies Matched So Far</div>
+        </div>
+
+        <div class="finished-actions">
+          <button class="btn btn-primary btn-block" onclick="toggleMatchesDrawer()">
+            🎯 View Matched Movies
+          </button>
+          <a href="/" class="btn btn-secondary btn-block">
+            🏠 Start New Party / Return Home
+          </a>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MATCH CELEBRATION MODAL (TRIGGERED ON 100% UNANIMOUS CONSENSUS) -->
+  <div class="modal-overlay" id="matchModal">
+    <div class="match-celebration-card">
+      <div class="match-confetti-badge">🎊 IT'S A MATCH! 🎊</div>
+      <h2 class="match-title">Everyone agrees on this movie!</h2>
+
+      <div class="match-poster-wrapper">
+        <img id="matchPosterImg" src="" alt="Matched movie poster" />
+        <div class="match-poster-glow"></div>
+      </div>
+
+      <h3 class="match-movie-title" id="matchMovieTitle">Interstellar (2014)</h3>
+      <p class="match-tagline" id="matchMovieTagline">"Mankind was born on Earth..."</p>
+
+      <div class="match-voters-list" id="matchVotersList">
+        <!-- "Matched by: Alex, Jordan, Bob" -->
+      </div>
+
+      <div class="match-modal-actions">
+        <button class="btn btn-primary" onclick="watchMatchedMovieTrailer()">
+          🎬 Watch Trailer
+        </button>
+        <button class="btn btn-secondary" onclick="closeMatchModal()">
+          Keep Swiping →
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MATCHES DRAWER (SHARED WATCHLIST) -->
+  <div class="drawer-overlay" id="matchesDrawerOverlay" onclick="toggleMatchesDrawer()"></div>
+  <aside class="matches-drawer" id="matchesDrawer">
+    <div class="drawer-header">
+      <div class="drawer-title-group">
+        <h3>🎯 Group Matches</h3>
+        <span class="drawer-subtitle" id="drawerSubtitle">0 movies agreed upon</span>
+      </div>
+      <button class="close-btn" onclick="toggleMatchesDrawer()">✕</button>
+    </div>
+
+    <!-- Randomizer / Tie-breaker Wheel -->
+    <div class="wheel-picker-box" id="wheelPickerBox" style="display: none;">
+      <button class="btn btn-sm btn-accent btn-block" onclick="pickRandomMatch()">
+        🎲 Can't Decide? Pick One Randomly For Us!
+      </button>
+      <div class="random-pick-result" id="randomPickResult" style="display: none;"></div>
+    </div>
+
+    <!-- Matches List Container -->
+    <div class="matches-list" id="matchesList">
+      <div class="empty-matches">
+        <span class="empty-icon">🍿</span>
+        <p>No matches yet!</p>
+        <small>When all friends in the room swipe ❤️ Love on the same movie, it will appear here.</small>
+      </div>
+    </div>
+
+    <!-- Drawer Footer -->
+    <div class="drawer-footer">
+      <a href="/" class="btn btn-secondary btn-block btn-sm">
+        🏠 Leave Party & Return Home
+      </a>
+    </div>
+  </aside>
+
+  <!-- TRAILER MODAL -->
+  <div class="modal-overlay" id="trailerModal">
+    <div class="trailer-modal-content">
+      <div class="trailer-modal-header">
+        <h4 id="trailerModalTitle">Movie Trailer</h4>
+        <div class="trailer-header-actions">
+          <a id="ytDirectBtn" href="#" target="_blank" rel="noopener noreferrer" class="yt-direct-link"
+            title="Open directly on YouTube">
+            <span>Watch on YouTube</span> ↗
+          </a>
+          <button class="close-btn" onclick="closeTrailerModal()">✕</button>
+        </div>
+      </div>
+      <div class="video-container">
+        <iframe id="trailerIframe" src="" frameborder="0" referrerpolicy="strict-origin-when-cross-origin"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowfullscreen></iframe>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="app.js"></script>
+</body>
+
+</html>
