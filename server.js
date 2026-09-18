@@ -69,6 +69,11 @@ function getLocalNetworkIp() {
 // Key: roomCode -> room state
 const rooms = new Map();
 
+// Health check endpoint for Render / cloud deployment
+app.get('/healthz', (req, res) => {
+  res.status(200).json({ status: 'healthy', uptime: process.uptime() });
+});
+
 // REST API Endpoints
 app.get('/api/info', (req, res) => {
   res.json({
